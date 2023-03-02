@@ -14,20 +14,47 @@ class ViewController: UIViewController {
     // MARK: -ViewDidLoad
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.view.backgroundColor = .white
+        setStacks(count: 5)
+        setLoadAllButton()
+        
+        
     }
     
     // MARK: -Properties
     private let imageUrls = [
-        "https://i.namu.wiki/s/cf31c81bbe8c41c28f894f9d2c2cffa00686a1bddda060ab8bd459aba5997da2c050d5959259f9b5793f76f4ff80dd96bae04f0fd33e286174c59ac8ac7a56e5bf001f194329f4591057479dd8e233d1bd00d29c0c8a7ec8490c990af723d2dc",
-        "https://i.namu.wiki/s/110372e9947e16574460900b687e1753cd70d36a3d571b7b889f9b826a9a271a51d3355df015904ed8efe3c4fcf2fb90525e759a5070fea9f19e24eb10f2efab7422646c145eb3a0e680bac5de0d7f8b14e5f1f27fab9599e1ed568511298117",
-        "https://i.namu.wiki/s/d0fc0604ee5b4d86861231ca0949bf4a3ddb8c733904fa4e5c2442b5d60cbf92f877a2939105e0f4225baba0c5d8af4a5dbe86ec9a4df486219a8eb9886bb89ad6c15c6fcb8639016b5996e89d5a9ba47890994066f87a42e9a49e00edf53316",
-        "https://i.namu.wiki/s/fe247207b3eac8bb23cf9acd9bd19850fcdea9dbe0f2d96dfa137b3f48b960951aeef4cfc90e785cd0ca411bcf68b202de4c543202b02f42ea736993a2961ea461694d7709bea56f8636d445b24c186340bde2243de3a3f6aace3cecd458e82e",
-        "https://i.namu.wiki/s/a4333fc6f246e12879bd755404f7bf4be31e27b02266f1a9889bdd93f9a3d9729e80d0aeb200d53ba9477c8b3c0edd4d644c159968897059d7b8ad6659d03a2032559b49ee8e62e45c224c70c30369ef831e4088eb5ce4a519b467e73d457b56"
+        "https://i.natgeofe.com/n/548467d8-c5f1-4551-9f58-6817a8d2c45e/NationalGeographic_2572187_square.jpg",
+        "https://play-lh.googleusercontent.com/XVHP0sBKrRJYZq_dB1RalwSmx5TcYYRRfYMFO18jgNAnxHAIA1osxM55XHYTb3LpkV8",
+        "https://pbs.twimg.com/media/Eb-lba0UcAAbJLx.jpg",
+        "https://rukminim1.flixcart.com/image/416/416/kph8h3k0/poster/e/w/4/large-adorable-cat-poster-cute-kittens-poster-cat-poster-funny-original-imag3p7tcxuzhpn2.jpeg?q=70",
+        "https://i.pinimg.com/originals/aa/02/78/aa02780bbc7e6c5e2d52d9b0e919fbf6.jpg"
     ]
     
-    private var loadedImages: [UIImageView] = []
+    private let tintColor: UIColor = .tintColor
+    private var loadedImageViews: [UIImageView] = []
+    private var loadButtons: [UIButton] = []
+    private var loadedImagesStack = UIStackView()
+    private let loadAllButton = UIButton()
     
     // MARK: -Methods
+    
+    private func setLoadAllButton() {
+        
+        loadAllButton.setTitle("Load All Images", for: .normal)
+        loadAllButton.setTitleColor(.white, for: .normal)
+        loadAllButton.layer.cornerRadius = 10
+        loadAllButton.backgroundColor = .tintColor
+        loadAllButton.addTarget(self,
+                     action: #selector(loadAllImages),
+                     for: .touchUpInside)
+        
+        self.view.addSubview(loadAllButton)
+        loadAllButton.snp.makeConstraints {
+            $0.leading.trailing.equalTo(loadedImagesStack)
+            $0.top.equalTo(loadedImagesStack.snp.bottom).offset(20)
+        }
+    }
+    
     private func makeSetImageView() -> UIImageView {
         return UIImageView().then {
             $0.image = UIImage(systemName: "photo")
@@ -37,34 +64,94 @@ class ViewController: UIViewController {
     private func makeSetProgressBar() -> UIProgressView {
         return UIProgressView().then {
             $0.progress = 0.5
-            $0.progressTintColor = .blue
+            $0.progressTintColor = tintColor
         }
     }
     
-    private func makeSetButton() -> UIButton {
+    private func makeSetButton(tag: Int) -> UIButton {
         return UIButton().then {
             $0.setTitle("Load", for: .normal)
             $0.setTitleColor(.white, for: .normal)
-            $0.backgroundColor = .blue
+            $0.layer.cornerRadius = 10
+            $0.backgroundColor = tintColor
+            $0.tag = tag
             $0.addTarget(self,
-                         action: #selector(loadImage),
+                         action: #selector(loadImage(_:)),
                          for: .touchUpInside)
         }
     }
     
-    private func makeHStack() -> UIStackView {
+    private func makeHStack(tag: Int) -> UIStackView {
 
          let hStack = UIStackView().then {
             $0.axis = .horizontal
             $0.distribution = .fill
             $0.alignment = .center
-            $0.spacing = 10
+            $0.spacing = 5
         }
-        
+        stackAddArrangedSubview(stack: hStack, tag: tag)
         return hStack
     }
     
+    
+    private func stackAddArrangedSubview(stack: UIStackView, tag: Int) {
+        let imageView = makeSetImageView()
+        let progressBar = makeSetProgressBar()
+        let button = makeSetButton(tag: tag)
+        
+        loadedImageViews.append(imageView)
+        loadButtons.append(button)
+        
+        stack.addArrangedSubview(imageView)
+        stack.addArrangedSubview(progressBar)
+        stack.addArrangedSubview(button)
+        
+        imageView.snp.makeConstraints {
+            $0.width.equalTo(120)
+            $0.height.equalTo(80)
+        }
+        
+        button.snp.makeConstraints {
+            $0.width.equalTo(80)
+            $0.height.equalTo(40)
+        }
+    }
+    
+    private func setStacks(count: Int) {
+        var hStacks: [UIStackView] = []
+        for i in 0..<count {
+            let hStack = makeHStack(tag: i)
+            hStacks.append(hStack)
+        }
+        let vStack = UIStackView().then {
+            $0.axis = .vertical
+            $0.distribution = .fill
+            $0.alignment = .center
+            $0.spacing = 5
+            for hStack in hStacks {
+                $0.addArrangedSubview(hStack)
+                hStack.snp.makeConstraints {
+                    $0.leading.trailing.equalToSuperview()
+                }
+            }
+        }
+        self.view.addSubview(vStack)
+        setSNPConstraints(view: vStack)
+        loadedImagesStack = vStack
+    }
+    
+    private func setSNPConstraints(view: UIView) {
+        view.snp.makeConstraints {
+            $0.leading.trailing.equalToSuperview().inset(20)
+            $0.top.equalToSuperview().offset(100)
+        }
+    }
+    
     @objc private func loadImage(_ sender: UIButton) {
+
+        DispatchQueue.main.async {
+            self.loadedImageViews[sender.tag].image = UIImage(systemName: "photo")
+        }
         
         let imageURL = imageUrls[sender.tag]
         
@@ -72,17 +159,37 @@ class ViewController: UIViewController {
         
         let task = URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
             guard let data = data, error == nil else { return }
-            
             if let image = UIImage(data: data) {
                 DispatchQueue.main.async {
-                    self?.loadedImages[sender.tag].image = image
+                    self?.loadedImageViews[sender.tag].image = image
                 }
             }
         }
-        
         task.resume()
     }
     
+    @objc private func loadAllImages() {
+
+        for (idx, imageURL) in imageUrls.enumerated() {
+            DispatchQueue.main.async {
+                self.loadedImageViews[idx].image = UIImage(systemName: "photo")
+            }
+            
+            guard let url = URL(string: imageURL) else { return }
+            
+            let task = URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+                guard let data = data, error == nil else { return }
+                if let image = UIImage(data: data) {
+                    DispatchQueue.main.async {
+                        self?.loadedImageViews[idx].image = image
+                    }
+                }
+            }
+            task.resume()
+        }
+        
+        
+    }
 }
 
 // 프리뷰 생성
