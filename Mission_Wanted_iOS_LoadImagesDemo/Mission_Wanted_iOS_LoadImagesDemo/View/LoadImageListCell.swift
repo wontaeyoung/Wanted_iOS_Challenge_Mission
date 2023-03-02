@@ -7,6 +7,24 @@
 
 import UIKit
 
-struct LoadImageListCell: View {
+class LoadImageListCell: UIView {
+    private let loadedImageView = UIImageView()
+    private let loadProgressBar = UIProgressView(progressViewStyle: .bar)
+    private let loadImageButton = UIButton()
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        // 셋업 메서드 나열
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    private func setupImageView() {
+        let defaultImage = UIImage(systemName: "photo")
+        loadedImageView.image = defaultImage
+    }
+    
     
 }
