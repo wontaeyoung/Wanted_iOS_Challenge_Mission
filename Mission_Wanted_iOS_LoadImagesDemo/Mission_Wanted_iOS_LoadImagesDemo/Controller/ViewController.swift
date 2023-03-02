@@ -46,7 +46,22 @@ class ViewController: UIViewController {
             $0.setTitle("Load", for: .normal)
             $0.setTitleColor(.white, for: .normal)
             $0.backgroundColor = .blue
+            $0.addTarget(self,
+                         action: #selector(loadImage),
+                         for: .touchUpInside)
         }
+    }
+    
+    private func makeHStack() -> UIStackView {
+
+         let hStack = UIStackView().then {
+            $0.axis = .horizontal
+            $0.distribution = .fill
+            $0.alignment = .center
+            $0.spacing = 10
+        }
+        
+        return hStack
     }
     
     @objc private func loadImage(_ sender: UIButton) {
