@@ -49,7 +49,24 @@ class ViewController: UIViewController {
         }
     }
     
-
+    @objc private func loadImage(_ sender: UIButton) {
+        
+        let imageURL = imageUrls[sender.tag]
+        
+        guard let url = URL(string: imageURL) else { return }
+        
+        let task = URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+            guard let data = data, error == nil else { return }
+            
+            if let image = UIImage(data: data) {
+                DispatchQueue.main.async {
+                    self?.loadedImages[sender.tag].image = image
+                }
+            }
+        }
+        
+        task.resume()
+    }
     
 }
 
