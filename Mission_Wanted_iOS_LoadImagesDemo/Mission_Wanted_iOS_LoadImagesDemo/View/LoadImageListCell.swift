@@ -26,5 +26,8 @@ class LoadImageListCell: UIView {
         loadedImageView.image = defaultImage
     }
     
-    
+    private func setupProgressBar() {
+        loadProgressBar.progressTintColor = .blue
+        loadProgressBar.progress = 0.5
+    }
 }
