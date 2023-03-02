@@ -30,4 +30,10 @@ class LoadImageListCell: UIView {
         loadProgressBar.progressTintColor = .blue
         loadProgressBar.progress = 0.5
     }
+    
+    private func setupButton() {
+        loadImageButton.setTitle("Load", for: .normal)
+        loadImageButton.setTitleColor(.white, for: .normal)
+        loadImageButton.backgroundColor = .blue
+    }
 }
