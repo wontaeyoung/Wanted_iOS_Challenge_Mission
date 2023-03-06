@@ -28,15 +28,15 @@ class LoadImageListCell: UIView {
 
     private let loadedImageView = UIImageView()
     private let loadProgressBar = UIProgressView(progressViewStyle: .bar)
-    private let loadImageButton = UIButton()
+    private let loadButton = UIButton()
+    private var observation: NSKeyValueObservation?
     
     override init(frame: CGRect) {
         super.init(frame: frame)
         // 셋업 메서드 나열
-        setupImageView()
-        setupProgressBar()
-        setupButton()
+        reset()
     }
+    
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -59,15 +59,19 @@ class LoadImageListCell: UIView {
     }
     
     private func setupButton() {
-        loadImageButton.setTitle("Load", for: .normal)
-        loadImageButton.setTitleColor(.white, for: .normal)
-        loadImageButton.backgroundColor = .blue
-        loadImageButton.isEnabled = true
+        loadButton.setTitle("Load", for: .normal)
+        loadButton.setTitle("Loading...", for: .selected)
+        loadButton.setTitleColor(.white, for: .normal)
+        loadButton.backgroundColor = .blue
+        loadButton.isEnabled = true
         
-        loadImageButton.addTarget(self, action: #selector(loadImage), for: .touchUpInside)
+        loadButton.addTarget(self, action: #selector(loadImage), for: .touchUpInside)
     }
     
     @objc private func loadImage(_ sender: UIButton) {
+        sender.isSelected = !sender.isSelected
+        
+        
         guard (0...4).contains(sender.tag) else { return }
         
         let url = ImageURL[sender.tag]
@@ -81,7 +85,15 @@ class LoadImageListCell: UIView {
             if let image = UIImage(data: data) {
                 DispatchQueue.main.async {
                     self.loadedImageView.image = image
+                    sender.isSelected = !sender.isSelected
                 }
+            }
+        }
+        
+        observation = task.progress.observe(\.fractionCompleted,
+                                             options: [.new]) { progress, change in
+            DispatchQueue.main.async {
+                self.loadProgressBar.progress = Float(progress.fractionCompleted)
             }
         }
         
