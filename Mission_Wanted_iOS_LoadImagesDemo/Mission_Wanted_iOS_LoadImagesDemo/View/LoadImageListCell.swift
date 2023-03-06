@@ -42,6 +42,12 @@ class LoadImageListCell: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
+    private func reset() {
+        setupImageView()
+        setupProgressBar()
+        setupButton()
+    }
+    
     private func setupImageView() {
         let defaultImage = UIImage(systemName: "photo")
         loadedImageView.image = defaultImage
@@ -49,13 +55,14 @@ class LoadImageListCell: UIView {
     
     private func setupProgressBar() {
         loadProgressBar.progressTintColor = .blue
-        loadProgressBar.progress = 0.5
+        loadProgressBar.progress = 0
     }
     
     private func setupButton() {
         loadImageButton.setTitle("Load", for: .normal)
         loadImageButton.setTitleColor(.white, for: .normal)
         loadImageButton.backgroundColor = .blue
+        loadImageButton.isEnabled = true
         
         loadImageButton.addTarget(self, action: #selector(loadImage), for: .touchUpInside)
     }
