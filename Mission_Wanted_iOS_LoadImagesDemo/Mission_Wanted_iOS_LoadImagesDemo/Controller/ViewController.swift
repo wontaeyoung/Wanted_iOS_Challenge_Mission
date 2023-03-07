@@ -17,9 +17,9 @@ class ViewController: UIViewController {
         self.view.backgroundColor = .white
         setStacks(count: 5)
         setLoadAllButton()
-        
-        
     }
+    
+    private var loadImageCells: [UIView] = []
     
     // MARK: -Properties
     private let imageUrls = [
@@ -55,72 +55,11 @@ class ViewController: UIViewController {
         }
     }
     
-    private func makeSetImageView() -> UIImageView {
-        return UIImageView().then {
-            $0.image = UIImage(systemName: "photo")
-        }
-    }
-    
-    private func makeSetProgressBar() -> UIProgressView {
-        return UIProgressView().then {
-            $0.progress = 0.5
-            $0.progressTintColor = tintColor
-        }
-    }
-    
-    private func makeSetButton(tag: Int) -> UIButton {
-        return UIButton().then {
-            $0.setTitle("Load", for: .normal)
-            $0.setTitleColor(.white, for: .normal)
-            $0.layer.cornerRadius = 10
-            $0.backgroundColor = tintColor
-            $0.tag = tag
-            $0.addTarget(self,
-                         action: #selector(loadImage(_:)),
-                         for: .touchUpInside)
-        }
-    }
-    
-    private func makeHStack(tag: Int) -> UIStackView {
-
-         let hStack = UIStackView().then {
-            $0.axis = .horizontal
-            $0.distribution = .fill
-            $0.alignment = .center
-            $0.spacing = 5
-        }
-        stackAddArrangedSubview(stack: hStack, tag: tag)
-        return hStack
-    }
-    
-    
-    private func stackAddArrangedSubview(stack: UIStackView, tag: Int) {
-        let imageView = makeSetImageView()
-        let progressBar = makeSetProgressBar()
-        let button = makeSetButton(tag: tag)
-        
-        loadedImageViews.append(imageView)
-        loadButtons.append(button)
-        
-        stack.addArrangedSubview(imageView)
-        stack.addArrangedSubview(progressBar)
-        stack.addArrangedSubview(button)
-        
-        imageView.snp.makeConstraints {
-            $0.width.equalTo(120)
-            $0.height.equalTo(80)
-        }
-        
-        button.snp.makeConstraints {
-            $0.width.equalTo(80)
-            $0.height.equalTo(40)
-        }
-    }
-    
     private func setStacks(count: Int) {
-        var hStacks: [UIStackView] = []
+        var hStacks: [UIView] = []
         for i in 0..<count {
-            let hStack = makeHStack(tag: i)
+            let hStack = LoadImageListCell()
+            hStack.loadButton.tag = i
             hStacks.append(hStack)
         }
         let vStack = UIStackView().then {
@@ -147,27 +86,6 @@ class ViewController: UIViewController {
         }
     }
     
-    @objc private func loadImage(_ sender: UIButton) {
-
-        DispatchQueue.main.async {
-            self.loadedImageViews[sender.tag].image = UIImage(systemName: "photo")
-        }
-        
-        let imageURL = imageUrls[sender.tag]
-        
-        guard let url = URL(string: imageURL) else { return }
-        
-        let task = URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
-            guard let data = data, error == nil else { return }
-            if let image = UIImage(data: data) {
-                DispatchQueue.main.async {
-                    self?.loadedImageViews[sender.tag].image = image
-                }
-            }
-        }
-        task.resume()
-    }
-    
     @objc private func loadAllImages() {
 
         for (idx, imageURL) in imageUrls.enumerated() {
@@ -186,9 +104,7 @@ class ViewController: UIViewController {
                 }
             }
             task.resume()
-        }
-        
-        
+        }   
     }
 }
 
