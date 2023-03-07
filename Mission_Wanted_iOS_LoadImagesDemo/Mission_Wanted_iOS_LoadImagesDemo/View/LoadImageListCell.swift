@@ -31,8 +31,9 @@ class LoadImageListCell: UIView {
     let loadButton = UIButton()
     private let hStack = UIStackView()
     private var observation: NSKeyValueObservation?
-    private var task: URLSessionDataTask = URLSession.shared.dataTask(with: ImageURL[0]) { data, reponse, error in }
-    private var workItem: DispatchWorkItem = .init(block: {})
+    // TODO: 타입에 !를 붙이는게 논 옵셔널과 뭐가 다른지 확인해보자, 옵셔널 + 강제 언래핑이 맞는지.
+    private var task: URLSessionDataTask!
+    private var workItem: DispatchWorkItem!
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -105,7 +106,7 @@ class LoadImageListCell: UIView {
         }
     }
     
-    @objc private func loadImage(_ sender: UIButton) {
+    @objc func loadImage(_ sender: UIButton) {
         
         workItem = DispatchWorkItem {
             
