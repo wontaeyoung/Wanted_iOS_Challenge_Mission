@@ -31,6 +31,8 @@ class LoadImageListCell: UIView {
     let loadButton = UIButton()
     private let hStack = UIStackView()
     private var observation: NSKeyValueObservation?
+    private var task: URLSessionDataTask = URLSession.shared.dataTask(with: ImageURL[0]) { data, reponse, error in }
+    private var workItem: DispatchWorkItem = .init(block: {})
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -42,33 +44,39 @@ class LoadImageListCell: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
+    deinit {
+        observation?.invalidate()
+        observation = nil
+    }
+    
     private func reset() {
-        setupImageView()
-        setupProgressBar()
-        setupButton()
-        setupStack()
+        DispatchQueue.main.async {
+            self.setupImageView()
+            self.setupProgressBar()
+            self.setupButton()
+            self.setupStack()
+        }
     }
     
     private func setupImageView() {
         let defaultImage = UIImage(systemName: "photo")
         loadedImageView.image = defaultImage
-//        self.addSubview(loadedImageView)
     }
     
     private func setupProgressBar() {
-        loadProgressBar.progressTintColor = .blue
+        loadProgressBar.progressTintColor = .tintColor
         loadProgressBar.progress = 0
-//        self.addSubview(loadProgressBar)
     }
     
     private func setupButton() {
         loadButton.setTitle("Load", for: .normal)
         loadButton.setTitle("Loading...", for: .selected)
         loadButton.setTitleColor(.white, for: .normal)
-        loadButton.backgroundColor = .blue
+        loadButton.layer.cornerRadius = 10
+        loadButton.backgroundColor = tintColor
         
         loadButton.addTarget(self, action: #selector(loadImage), for: .touchUpInside)
-//        self.addSubview(loadButton)
+
     }
     
     private func setupStack() {
@@ -81,39 +89,68 @@ class LoadImageListCell: UIView {
         hStack.addArrangedSubview(loadProgressBar)
         hStack.addArrangedSubview(loadButton)
         self.addSubview(hStack)
+        
+        loadedImageView.snp.makeConstraints { make in
+            make.width.equalTo(100)
+            make.height.equalTo(60)
+        }
+        
+        loadButton.snp.makeConstraints { make in
+            make.width.equalTo(100)
+            make.height.equalTo(40)
+        }
+        
         hStack.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
     }
     
     @objc private func loadImage(_ sender: UIButton) {
-        sender.isSelected = !sender.isSelected
         
-        guard (0...4).contains(sender.tag) else { return }
-        
-        let url = ImageURL[sender.tag]
-        let request = URLRequest(url: url)
-        
-        let task = URLSession.shared.dataTask(with: request) { data, response, error in
-            guard let data, error == nil else {
-                fatalError(error!.localizedDescription)
+        workItem = DispatchWorkItem {
+            
+            DispatchQueue.main.async {
+                sender.isSelected = !sender.isSelected
+                guard (0...4).contains(sender.tag) else { return }
+                
             }
             
-            if let image = UIImage(data: data) {
-                DispatchQueue.main.async {
-                    self.loadedImageView.image = image
-                    sender.isSelected = !sender.isSelected
+            let url = ImageURL[sender.tag]
+            let request = URLRequest(url: url)
+            
+            self.task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+                guard let data, error == nil else {
+                    fatalError(error!.localizedDescription)
+                }
+                
+                guard self?.workItem.isCancelled == false else {
+                    self?.reset()
+                    return
+                }
+                
+                if let image = UIImage(data: data) {
+                    DispatchQueue.main.async {
+                        self?.loadedImageView.image = image
+                        sender.isSelected = !sender.isSelected
+                    }
                 }
             }
-        }
-        
-        observation = task.progress.observe(\.fractionCompleted,
-                                             options: [.new]) { progress, change in
-            DispatchQueue.main.async {
-                self.loadProgressBar.progress = Float(progress.fractionCompleted)
+            
+            self.observation = self.task.progress.observe(\.fractionCompleted,
+                                                 options: [.new]) { progress, change in
+                DispatchQueue.main.async {
+                    guard self.workItem.isCancelled == false else {
+                        self.observation?.invalidate()
+                        self.observation = nil
+                        self.loadProgressBar.progress = 0
+                        return
+                    }
+                    self.loadProgressBar.progress = Float(progress.fractionCompleted)
+                }
             }
+            
+            self.task.resume()
         }
-        
-        task.resume()
+        DispatchQueue.global().async(execute: workItem)
     }
 }
