@@ -61,6 +61,7 @@ class ViewController: UIViewController {
             let hStack = LoadImageListCell()
             hStack.loadButton.tag = i
             hStacks.append(hStack)
+            loadImageCells.append(hStack)
         }
         let vStack = UIStackView().then {
             $0.axis = .vertical
@@ -87,7 +88,7 @@ class ViewController: UIViewController {
     }
     
     @objc private func loadAllImages() {
-
+        
         for (idx, imageURL) in imageUrls.enumerated() {
             DispatchQueue.main.async {
                 self.loadedImageViews[idx].image = UIImage(systemName: "photo")
